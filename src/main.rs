@@ -3,8 +3,7 @@ use std::io::{stdout, Write};
 use crossterm::{
     cursor,
     event::{read, Event, KeyCode},
-    terminal,
-    QueueableCommand, Result,
+    terminal, QueueableCommand, Result,
 };
 
 use tic_tac_toe::{Direction, Game};
@@ -22,18 +21,24 @@ fn main() -> Result<()> {
 
         //stdout.queue(terminal::Clear(ClearType::FromCursorDown))?;
 
-        if let Event::Key(key) = read()? { match key.code {
+        if let Event::Key(key) = read()? {
+            match key.code {
                 KeyCode::Up | KeyCode::Char('k') => game.move_player(Direction::Up),
                 KeyCode::Down | KeyCode::Char('j') => game.move_player(Direction::Down),
                 KeyCode::Left | KeyCode::Char('h') => game.move_player(Direction::Left),
                 KeyCode::Right | KeyCode::Char('l') => game.move_player(Direction::Right),
+                KeyCode::Char(' ') => game.place_player_token(),
                 KeyCode::Esc | KeyCode::Char('q') => break,
                 _ => (),
             };
         };
 
-        stdout.queue(cursor::MoveUp(5))?;
-        stdout.flush()?;
+        if game.game_over() {
+            break;
+        } else {
+            stdout.queue(cursor::MoveUp(5))?;
+            stdout.flush()?;
+        }
     }
 
     stdout.queue(cursor::Show)?;

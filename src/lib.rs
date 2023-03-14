@@ -3,6 +3,7 @@ use std::io::Write;
 use crossterm::{cursor, style::Print, QueueableCommand, Result};
 
 pub struct Game {
+    game_over: bool,
     game_state: [CellState; 9],
     player_position: u8,
     previous_player_position: Option<usize>,
@@ -28,10 +29,31 @@ impl Game {
     pub fn new() -> Self {
         let game_state = [CellState::Empty; 9];
         Self {
+            game_over: false,
             game_state,
             previous_player_position: None,
             player_position: 0,
         }
+    }
+
+    pub fn place_player_token(&mut self) {
+        self.game_state[self.player_position as usize] = CellState::X;
+
+        // Moving the player out of the way
+        self.player_position = 0;
+        // Just keep moving the player to the next postion until an empty spot is found
+        while self.game_state[self.player_position as usize] != CellState::Empty {
+            // If there are no empty spots, end the game
+            if self.player_position == 8 {
+                self.game_over = true;
+                return;
+            }
+            self.player_position += 1;
+        }
+    }
+
+    pub fn game_over(&self) -> bool {
+        self.game_over
     }
 
     pub fn move_player(&mut self, direction: Direction) {
@@ -155,7 +177,11 @@ impl Game {
     /// Draws the game board
     pub fn draw(&mut self, stdout: &mut std::io::Stdout) -> Result<()> {
         if let Some(index) = self.previous_player_position {
-            self.game_state[index] = CellState::Empty;
+            // if the players previous spot is an X, then they placed it and the cell shouldn't be
+            // reset
+            if self.game_state[index] != CellState::X {
+                self.game_state[index] = CellState::Empty;
+            }
         }
 
         self.game_state[self.player_position as usize] = CellState::Cursor;
