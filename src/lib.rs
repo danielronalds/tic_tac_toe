@@ -121,7 +121,10 @@ impl Game {
                 }
             }
             Direction::Left => {
-                new_position = new_position.saturating_sub(1);
+                match new_position {
+                    0 | 3 | 6 => (),
+                    _ => new_position = new_position.saturating_sub(1),
+                }
                 while self.game_state[new_position as usize] != CellState::Empty {
                     match new_position {
                         0 | 3 | 6 => break,
