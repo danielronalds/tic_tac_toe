@@ -7,37 +7,26 @@ use crossterm::{
     QueueableCommand, Result,
 };
 
-use tic_tac_toe::Grid;
+use tic_tac_toe::{Direction, Game};
 
 fn main() -> Result<()> {
     let mut stdout = stdout();
-    let mut player_position = 0;
 
     stdout.queue(cursor::Hide)?;
     terminal::enable_raw_mode()?;
 
-    let mut game = Grid::new();
+    let mut game = Game::new();
+
     loop {
-        game.draw(&mut stdout, player_position)?;
+        game.draw(&mut stdout)?;
 
         //stdout.queue(terminal::Clear(ClearType::FromCursorDown))?;
 
         if let Event::Key(key) = read()? { match key.code {
-                KeyCode::Up => if player_position > 2 {
-                    player_position = player_position.saturating_sub(3)
-                },
-                KeyCode::Down => {
-                    if player_position < 6 {
-                        player_position += 3;
-                    }
-                },
-                KeyCode::Left => player_position = player_position.saturating_sub(1),
-                KeyCode::Right => {
-                    match player_position {
-                        2 | 5 | 8 => (),
-                        _ => player_position += 1
-                    };
-                },
+                KeyCode::Up => game.move_player(Direction::Up),
+                KeyCode::Down => game.move_player(Direction::Down),
+                KeyCode::Left => game.move_player(Direction::Left),
+                KeyCode::Right => game.move_player(Direction::Right),
                 KeyCode::Esc | KeyCode::Char('q') => break,
                 _ => (),
             };
