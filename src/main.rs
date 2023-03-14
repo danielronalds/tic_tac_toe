@@ -23,10 +23,10 @@ fn main() -> Result<()> {
         //stdout.queue(terminal::Clear(ClearType::FromCursorDown))?;
 
         if let Event::Key(key) = read()? { match key.code {
-                KeyCode::Up => game.move_player(Direction::Up),
-                KeyCode::Down => game.move_player(Direction::Down),
-                KeyCode::Left => game.move_player(Direction::Left),
-                KeyCode::Right => game.move_player(Direction::Right),
+                KeyCode::Up | KeyCode::Char('k') => game.move_player(Direction::Up),
+                KeyCode::Down | KeyCode::Char('j') => game.move_player(Direction::Down),
+                KeyCode::Left | KeyCode::Char('h') => game.move_player(Direction::Left),
+                KeyCode::Right | KeyCode::Char('l') => game.move_player(Direction::Right),
                 KeyCode::Esc | KeyCode::Char('q') => break,
                 _ => (),
             };
