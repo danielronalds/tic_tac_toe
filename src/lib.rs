@@ -27,9 +27,6 @@ pub enum Direction {
 impl Game {
     pub fn new() -> Self {
         let mut game_state = [CellState::Empty; 9];
-        game_state[3] = CellState::X;
-        game_state[1] = CellState::O;
-        game_state[7] = CellState::X;
         Self {
             game_state,
             previous_player_position: None,
@@ -41,25 +38,83 @@ impl Game {
         let mut new_position = self.player_position;
         match direction {
             Direction::Up => {
-                if self.player_position > 2 {
-                    new_position = new_position.saturating_sub(3)
+                if self.player_position < 3 {
+                    return;
                 }
 
+                // Moving the player up a row, by subtracting the offset of the grid
+                new_position = self.player_position - 3;
+
                 while self.game_state[new_position as usize] != CellState::Empty {
-                    if new_position > 2 {
-                        new_position = new_position.saturating_sub(3)
+                    // If the position above the player is not available, we need to find the next
+                    // available place that is
+
+                    // First we determine what row the player is on
+                    let row = new_position / 3;
+
+                    // We then loop through each cell in that row
+                    for i in 0..=2 {
+                        // We try the current cell
+                        let auto_placement = i + row * 3;
+                        if self.game_state[auto_placement as usize] == CellState::Empty {
+                            // and if the cell is empty we move the player there
+                            new_position = auto_placement;
+                            break;
+                        }
+                        // Otherwise we loop through all of the possible cells, and if we cannot
+                        // find one that is empty, then the row is full
+                    }
+
+                    // We check if the player has already found an empty square before moving them
+                    // up another row
+                    let position_found = self.game_state[new_position as usize] == CellState::Empty;
+
+                    if (new_position / 3) > 0 && !position_found {
+                        new_position -= 3
                     } else {
                         break;
                     }
                 }
             }
             Direction::Down => {
-                if self.player_position < 6 {
-                    new_position += 3;
+                if self.player_position > 5 {
+                    return;
                 }
+
+                // Moving the player down a row, by adding the offset of the grid
+                new_position = self.player_position + 3;
+
                 while self.game_state[new_position as usize] != CellState::Empty {
-                    if new_position < 6 {
-                        new_position += 3;
+                    // If the position above the player is not available, we need to find the next
+                    // available place that is
+
+                    // First we determine what row the player is on
+                    let mut row = new_position / 3;
+                    // If the player is in the top corner, then % of the new position will be 0,
+                    // even though they have been moved down
+                    if row == 0 && new_position - 3 == 0{
+                        row = 1;
+                    }
+
+                    // We then loop through each cell in that row
+                    for i in 0..=2 {
+                        // We try the current cell
+                        let auto_placement = i + row * 3;
+                        if self.game_state[auto_placement as usize] == CellState::Empty {
+                            // and if the cell is empty we move the player there
+                            new_position = auto_placement;
+                            break;
+                        }
+                        // Otherwise we loop through all of the possible cells, and if we cannot
+                        // find one that is empty, then the row is full
+                    }
+
+                    // We check if the player has already found an empty square before moving them
+                    // down another row
+                    let position_found = self.game_state[new_position as usize] == CellState::Empty;
+
+                    if (new_position / 3) < 2 && !position_found {
+                        new_position += 3
                     } else {
                         break;
                     }
