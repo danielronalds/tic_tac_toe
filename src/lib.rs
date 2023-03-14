@@ -26,7 +26,7 @@ pub enum Direction {
 
 impl Game {
     pub fn new() -> Self {
-        let mut game_state = [CellState::Empty; 9];
+        let game_state = [CellState::Empty; 9];
         Self {
             game_state,
             previous_player_position: None,
@@ -92,7 +92,7 @@ impl Game {
                     let mut row = new_position / 3;
                     // If the player is in the top corner, then % of the new position will be 0,
                     // even though they have been moved down
-                    if row == 0 && new_position - 3 == 0{
+                    if row == 0 && new_position - 3 == 0 {
                         row = 1;
                     }
 
@@ -189,5 +189,92 @@ impl Game {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn player_down_movement_works() {
+        let mut game = Game::new();
+        // Placing a line through the board
+        // P
+        // XXX
+        //
+        game.game_state[3] = CellState::X;
+        game.game_state[4] = CellState::X;
+        game.game_state[5] = CellState::X;
+        // Moving the player down
+        game.move_player(Direction::Down);
+        // Player should be here
+        //
+        // XXX
+        // P
+        assert_eq!(game.player_position, 6)
+    }
+
+    #[test]
+    fn player_complex_down_movement_works() {
+        let mut game = Game::new();
+        // Setting up the board to look like this
+        // P
+        // XXX
+        // OO
+        game.game_state[3] = CellState::X;
+        game.game_state[4] = CellState::X;
+        game.game_state[5] = CellState::X;
+        game.game_state[6] = CellState::O;
+        game.game_state[7] = CellState::O;
+        // Moving the player down
+        game.move_player(Direction::Down);
+        // Player should be here
+        //
+        // XXX
+        // OOP
+        assert_eq!(game.player_position, 8)
+    }
+
+    #[test]
+    fn player_up_movement_works() {
+        let mut game = Game::new();
+        // Setting up the board to look like this
+        //
+        // XXX
+        //   P
+        game.game_state[3] = CellState::X;
+        game.game_state[4] = CellState::X;
+        game.game_state[5] = CellState::X;
+        game.player_position = 8;
+        // Moving the player up
+        game.move_player(Direction::Up);
+        // Player should be here
+        //   P
+        // XXX
+        //
+        assert_eq!(game.player_position, 2)
+    }
+
+    #[test]
+    fn player_complex_up_movement_works() {
+        let mut game = Game::new();
+        // Setting up the board to look like this
+        //
+        // XXX
+        // OOP
+        game.game_state[3] = CellState::X;
+        game.game_state[4] = CellState::X;
+        game.game_state[5] = CellState::X;
+        game.game_state[6] = CellState::O;
+        game.game_state[7] = CellState::O;
+        game.player_position = 8;
+        // Moving the player up
+        game.move_player(Direction::Up);
+        // Player should be here
+        //   P
+        // XXX
+        // OO
+        assert_eq!(game.player_position, 2)
     }
 }
