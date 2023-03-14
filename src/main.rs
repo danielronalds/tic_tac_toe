@@ -1,3 +1,6 @@
+use tic_tac_toe::Grid;
+
 fn main() {
-    println!("Hello, world!");
+    let game = Grid::new();
+    game.draw();
 }
