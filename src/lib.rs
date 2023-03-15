@@ -2,6 +2,8 @@ use std::io::Write;
 
 use crossterm::{cursor, style::Print, QueueableCommand, Result};
 
+use rand::Rng;
+
 pub struct Game {
     game_over: bool,
     game_state: [CellState; 9],
@@ -46,6 +48,7 @@ impl Game {
             // If there are no empty spots, end the game
             if self.player_position == 8 {
                 self.game_over = true;
+                self.player_position = 10;
                 return;
             }
             self.player_position += 1;
@@ -174,8 +177,7 @@ impl Game {
         }
     }
 
-    /// Draws the game board
-    pub fn draw(&mut self, stdout: &mut std::io::Stdout) -> Result<()> {
+    pub fn apply_game_logic(&mut self) {
         if let Some(index) = self.previous_player_position {
             // if the players previous spot is an X, then they placed it and the cell shouldn't be
             // reset
@@ -184,10 +186,16 @@ impl Game {
             }
         }
 
-        self.game_state[self.player_position as usize] = CellState::Cursor;
+        // The player can only be out of bounds if placed there, which typically means the game is 
+        // over
+        if self.player_position < 9 {
+            self.game_state[self.player_position as usize] = CellState::Cursor;
+            self.previous_player_position = Some(self.player_position as usize);
+        }
+    }
 
-        self.previous_player_position = Some(self.player_position as usize);
-
+    /// Draws the game board
+    pub fn draw(&mut self, stdout: &mut std::io::Stdout) -> Result<()> {
         for y in 0..=2 {
             let mut board = String::new();
             let offset = y * 3;

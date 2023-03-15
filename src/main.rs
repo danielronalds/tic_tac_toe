@@ -17,6 +17,7 @@ fn main() -> Result<()> {
     let mut game = Game::new();
 
     loop {
+        game.apply_game_logic();
         game.draw(&mut stdout)?;
 
         //stdout.queue(terminal::Clear(ClearType::FromCursorDown))?;
@@ -27,19 +28,23 @@ fn main() -> Result<()> {
                 KeyCode::Down | KeyCode::Char('j') => game.move_player(Direction::Down),
                 KeyCode::Left | KeyCode::Char('h') => game.move_player(Direction::Left),
                 KeyCode::Right | KeyCode::Char('l') => game.move_player(Direction::Right),
-                KeyCode::Char(' ') => game.place_player_token(),
+                KeyCode::Char(' ') => {
+                    game.place_player_token();
+                }
                 KeyCode::Esc | KeyCode::Char('q') => break,
                 _ => (),
             };
         };
 
+        stdout.queue(cursor::MoveUp(5))?;
+        stdout.flush()?;
         if game.game_over() {
             break;
-        } else {
-            stdout.queue(cursor::MoveUp(5))?;
-            stdout.flush()?;
         }
     }
+
+    game.draw(&mut stdout)?;
+    stdout.flush()?;
 
     stdout.queue(cursor::Show)?;
     terminal::disable_raw_mode()?;
