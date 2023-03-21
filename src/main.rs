@@ -30,18 +30,23 @@ fn main() -> Result<()> {
                 KeyCode::Right | KeyCode::Char('l') => game.move_player(Direction::Right),
                 KeyCode::Char(' ') => {
                     game.place_player_token();
+                    game.place_computer_token();
                 }
                 KeyCode::Esc | KeyCode::Char('q') => break,
                 _ => (),
             };
         };
 
-        stdout.queue(cursor::MoveUp(5))?;
-        stdout.flush()?;
         if game.game_over() {
             break;
         }
+
+        stdout.queue(cursor::MoveUp(5))?;
+        stdout.flush()?;
     }
+
+    stdout.queue(cursor::MoveUp(5))?;
+    stdout.flush()?;
 
     game.draw(&mut stdout)?;
     stdout.flush()?;

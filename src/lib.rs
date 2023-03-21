@@ -11,7 +11,7 @@ pub struct Game {
     previous_player_position: Option<usize>,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum CellState {
     X,
     O,
@@ -41,6 +41,35 @@ impl Game {
     pub fn place_player_token(&mut self) {
         self.game_state[self.player_position as usize] = CellState::X;
 
+        self.relocate_player();
+    }
+
+    pub fn place_computer_token(&mut self) {
+        let mut avaliable_cells = vec![];
+
+        for (i, cell) in self.game_state.iter().enumerate() {
+            if cell != &CellState::X && cell != &CellState::O {
+                avaliable_cells.push(i);
+            }
+        }
+
+        if avaliable_cells.is_empty() {
+            return;
+        }
+
+        let random_index = rand::thread_rng().gen_range(0..avaliable_cells.len());
+
+        let random_position = avaliable_cells[random_index];
+
+        if random_position == self.player_position as usize {
+            self.game_state[random_position] = CellState::O;
+            self.relocate_player();
+        }
+
+        self.game_state[random_position] = CellState::O;
+    }
+
+    fn relocate_player(&mut self) {
         // Moving the player out of the way
         self.player_position = 0;
         // Just keep moving the player to the next postion until an empty spot is found
@@ -178,15 +207,15 @@ impl Game {
     }
 
     pub fn apply_game_logic(&mut self) {
-        if let Some(index) = self.previous_player_position {
+        if let Some(i) = self.previous_player_position {
             // if the players previous spot is an X, then they placed it and the cell shouldn't be
             // reset
-            if self.game_state[index] != CellState::X {
-                self.game_state[index] = CellState::Empty;
+            if self.game_state[i] != CellState::X && self.game_state[i] != CellState::O {
+                self.game_state[i] = CellState::Empty;
             }
         }
 
-        // The player can only be out of bounds if placed there, which typically means the game is 
+        // The player can only be out of bounds if placed there, which typically means the game is
         // over
         if self.player_position < 9 {
             self.game_state[self.player_position as usize] = CellState::Cursor;
@@ -204,7 +233,7 @@ impl Game {
                     CellState::X => 'X',
                     CellState::O => 'O',
                     CellState::Empty => ' ',
-                    CellState::Cursor => 'P',
+                    CellState::Cursor => '*',
                 };
 
                 match x {
@@ -313,5 +342,47 @@ mod tests {
         // XXX
         // OO
         assert_eq!(game.player_position, 2)
+    }
+
+    #[test]
+    fn computer_move_works() {
+        let number_of_times_to_run = 100;
+
+        // We loop this test multiple times, as the glitch only showed up sometimes
+        for _ in 0..number_of_times_to_run {
+            // We create a new game every iteration
+            let mut game = Game::new();
+
+            let mut game_state = game.game_state.clone();
+
+            // We play 3 turns
+            for _ in 0..3 {
+                // We place a player token
+                game.place_player_token();
+
+                // Check that it has overwritten anything else
+                for (index, cell) in game_state.iter().enumerate() {
+                    if cell == &CellState::X || cell == &CellState::O {
+                        assert_eq!(cell, &game.game_state[index]);
+                    }
+                }
+
+                // We update our game state to compare against
+                game_state = game.game_state.clone();
+
+                // We place a computer token
+                game.place_computer_token();
+
+                // Check that it has overwritten anything else
+                for (index, cell) in game_state.iter().enumerate() {
+                    if cell == &CellState::X || cell == &CellState::O {
+                        assert_eq!(cell, &game.game_state[index]);
+                    }
+                }
+
+                // We update our game state to compare against
+                game_state = game.game_state.clone();
+            }
+        }
     }
 }
