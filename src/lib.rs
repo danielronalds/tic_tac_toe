@@ -27,6 +27,12 @@ pub enum Direction {
     Right,
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Game {
     pub fn new() -> Self {
         let game_state = [CellState::Empty; 9];
@@ -353,7 +359,7 @@ mod tests {
             // We create a new game every iteration
             let mut game = Game::new();
 
-            let mut game_state = game.game_state.clone();
+            let mut game_state = game.game_state;
 
             // We play 3 turns
             for _ in 0..3 {
@@ -368,7 +374,7 @@ mod tests {
                 }
 
                 // We update our game state to compare against
-                game_state = game.game_state.clone();
+                game_state = game.game_state;
 
                 // We place a computer token
                 game.place_computer_token();
@@ -381,7 +387,7 @@ mod tests {
                 }
 
                 // We update our game state to compare against
-                game_state = game.game_state.clone();
+                game_state = game.game_state;
             }
         }
     }
