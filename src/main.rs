@@ -6,7 +6,7 @@ use crossterm::{
     terminal, QueueableCommand, Result,
 };
 
-use tic_tac_toe::{Direction, Game};
+use tic_tac_toe::{Direction, Game, GameState};
 
 fn main() -> Result<()> {
     let mut stdout = stdout();
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
             };
         };
 
-        if game.game_over() {
+        if game.game_state() != GameState::InProgess {
             break;
         }
 
@@ -53,6 +53,13 @@ fn main() -> Result<()> {
 
     stdout.queue(cursor::Show)?;
     terminal::disable_raw_mode()?;
+
+    match game.game_state() {
+        GameState::Xwon => println!("You won!"),
+        GameState::Owon => println!("You lost!"),
+        GameState::Draw => println!("It's a draw!"),
+        _ => unreachable!("The game is over, this cannot be reached"),
+    }
 
     Ok(())
 

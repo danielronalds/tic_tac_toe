@@ -5,7 +5,6 @@ use crossterm::{cursor, style::Print, QueueableCommand, Result};
 use rand::Rng;
 
 pub struct Game {
-    game_over: bool,
     game_state: [CellState; 9],
     player_position: u8,
     previous_player_position: Option<usize>,
@@ -27,6 +26,14 @@ pub enum Direction {
     Right,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum GameState {
+    Xwon,
+    Owon,
+    Draw,
+    InProgess,
+}
+
 impl Default for Game {
     fn default() -> Self {
         Self::new()
@@ -37,7 +44,6 @@ impl Game {
     pub fn new() -> Self {
         let game_state = [CellState::Empty; 9];
         Self {
-            game_over: false,
             game_state,
             previous_player_position: None,
             player_position: 0,
@@ -82,16 +88,11 @@ impl Game {
         while self.game_state[self.player_position as usize] != CellState::Empty {
             // If there are no empty spots, end the game
             if self.player_position == 8 {
-                self.game_over = true;
                 self.player_position = 10;
                 return;
             }
             self.player_position += 1;
         }
-    }
-
-    pub fn game_over(&self) -> bool {
-        self.game_over
     }
 
     pub fn move_player(&mut self, direction: Direction) {
@@ -227,6 +228,58 @@ impl Game {
             self.game_state[self.player_position as usize] = CellState::Cursor;
             self.previous_player_position = Some(self.player_position as usize);
         }
+    }
+
+    pub fn game_state(&self) -> GameState {
+        /// Figures out whether someone won from a tuple of cellstates
+        fn get_winner(set: (CellState, CellState, CellState)) -> Option<GameState> {
+            match set {
+                (CellState::X, CellState::X, CellState::X) => Some(GameState::Xwon),
+                (CellState::O, CellState::O, CellState::O) => Some(GameState::Owon),
+                (_, _, _) => None,
+            }
+        }
+
+        let cells = self.game_state;
+
+        for i in 0..3 {
+            let row = (cells[(i * 3)], cells[(i * 3) + 1], cells[(i * 3) + 2]);
+
+            if let Some(winner) = get_winner(row) {
+                return winner;
+            }
+        }
+
+        for i in 0..3 {
+            let column = (cells[i], cells[i + 3], cells[i + 6]);
+
+            if let Some(winner) = get_winner(column) {
+                return winner;
+            }
+        }
+
+        let left_to_right_diagnal = (cells[0], cells[4], cells[8]);
+
+        if let Some(winner) = get_winner(left_to_right_diagnal) {
+            return winner;
+        }
+
+        let right_to_left_diagnal = (cells[2], cells[4], cells[6]);
+
+        if let Some(winner) = get_winner(right_to_left_diagnal) {
+            return winner;
+        }
+
+        if cells
+            .iter()
+            .filter(|c| c == &&CellState::X || c == &&CellState::O)
+            .count()
+            == 9
+        {
+            return GameState::Draw;
+        }
+
+        GameState::InProgess
     }
 
     /// Draws the game board
